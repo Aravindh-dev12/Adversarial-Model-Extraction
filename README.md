@@ -1,6 +1,8 @@
 # Adversarial-Model-Extraction
 
-Local implementation of adversarial model extraction attacks for NLP systems. This project demonstrates how to steal model functionality and weights through various attack techniques.
+Local implementation of adversarial model extraction attacks for NLP systems.
+
+This project demonstrates how to steal model functionality and weights through various attack techniques including knowledge distillation, active learning, and linear algebra-based weight reconstruction.
 
 ## Features
 
