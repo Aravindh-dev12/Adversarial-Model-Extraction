@@ -1,13 +1,13 @@
 # Adversarial-Model-Extraction
 
-Local implementation of adversarial model extraction attacks for NLP systems.
+Local implementation of model extraction techniques for NLP systems.
 
 This project demonstrates:
-- Black-box attacks that steal model functionality through knowledge distillation
+- Knowledge distillation to replicate model functionality from teacher outputs
 - Active learning with disagreement-guided querying to efficiently select informative samples
-- Reconstruct actual neural network weights from logit outputs using linear regression
+- Reconstruct neural network weights from logit outputs using linear regression
 - Least squares optimization to solve for weight matrices from input-output pairs
-- Attacks on classification models (BERT, DistilBERT) and causal language models (GPT-2, Qwen)
+- Techniques applied to classification models (BERT, DistilBERT) and causal language models (GPT-2, Qwen)
 
 ## Features
 
