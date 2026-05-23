@@ -2,7 +2,12 @@
 
 Local implementation of adversarial model extraction attacks for NLP systems.
 
-This project demonstrates how to steal model functionality and weights through various attack techniques including knowledge distillation, active learning, and linear algebra-based weight reconstruction.
+This project demonstrates:
+- Black-box attacks that steal model functionality through knowledge distillation
+- Active learning with disagreement-guided querying to efficiently select informative samples
+- Reconstruct actual neural network weights from logit outputs using linear regression
+- Least squares optimization to solve for weight matrices from input-output pairs
+- Attacks on classification models (BERT, DistilBERT) and causal language models (GPT-2, Qwen)
 
 ## Features
 
