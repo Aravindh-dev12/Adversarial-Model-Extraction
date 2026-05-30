@@ -1,15 +1,18 @@
 [project]
-name = "adversarial-model-extraction"
+name = "advanced-adversarial-model-extraction-lab"
 version = "0.1.0"
-description = "Adversarial model extraction attacks for NLP systems"
+description = "Advanced adversarial model extraction algorithms, active query strategies, reconstruction experiments, and a Hugging Face Space demo"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.11.0",
     "datasets>=4.3.0",
+    "gradio>=5.0.0",
     "huggingface-hub>=0.36.0",
     "joblib>=1.5.2",
+    "matplotlib>=3.9.0",
     "scikit-learn>=1.7.2",
     "torch>=2.9.0",
     "transformers>=4.57.1",
+    "tqdm>=4.66.0",
 ]

@@ -1,127 +1,163 @@
-# Adversarial-Model-Extraction
+---
+title: Advanced Adversarial Model Extraction Lab
+sdk: gradio
+app_file: app.py
+pinned: false
+---
 
-Local implementation of model extraction techniques for NLP systems.
+# Advanced Adversarial Model Extraction Lab
 
-This project demonstrates:
-- Knowledge distillation to replicate model functionality from teacher outputs
-- Active learning with disagreement-guided querying to efficiently select informative samples
-- Reconstruct neural network weights from logit outputs using linear regression
-- Least squares optimization to solve for weight matrices from input-output pairs
-- Techniques applied to classification models (BERT, DistilBERT) and causal language models (GPT-2, Qwen)
+Research code for studying model extraction attacks and defenses in controlled
+local settings. The project combines classic knockoff-style stealing,
+DisGUIDE-style active querying, logit reconstruction, and a new deployable
+active extraction simulator.
 
-## Features
+Use this repository for authorized security research, red-team evaluation, and
+defensive analysis of model leakage risks.
 
-- **Knockoff-style functionality stealing** - Extract classification model behavior
-- **DisGUIDE active querying** - Disagreement-guided active learning attacks
-- **Logit-based reconstruction** - Reconstruct causal language model weights
+## What is included
 
-## Quick Start
+- **Advanced active extraction simulator** with entropy, margin, disagreement,
+  k-center, random, and hybrid query strategies.
+- **Surrogate ensemble attacks** using soft-label ridge distillation, logistic
+  regression, SGD log-loss, and tree-based students.
+- **Query-efficiency metrics** including fidelity, KL divergence, calibration
+  error, and task accuracy.
+- **Hugging Face Space app** in `app.py` for an interactive CPU-friendly demo.
+- **Knockoff classification stealing** baselines for hard-label and soft-label
+  extraction.
+- **DisGUIDE active querying** for live teacher APIs.
+- **Logit reconstruction experiments** for causal language model output layers
+  and internal linear layers.
 
-### Prerequisites
-
-- Python 3.12+
-- GPU recommended (for faster training/inference)
-- 10GB+ free disk space (for models and datasets)
-
-### Installation
+## Quick start
 
 ```bash
-# Step 1: Install dependencies using uv (recommended)
 uv sync
-
-# Step 2: Activate the virtual environment
-# On Windows:
-.venv\Scripts\activate
-# On Linux/Mac:
-source .venv/bin/activate
-
-# Or using pip (alternative)
-python -m pip install -U pip
-python -m pip install -U torch transformers datasets scikit-learn joblib accelerate huggingface-hub
+uv run python -m advanced_extraction.pipeline --strategy hybrid
 ```
 
-## Running Experiments
+The command writes metrics to:
 
-### 1. Knockoff Classification Stealing
-
-Run the Jupyter notebook to train a teacher model and extract student models:
-
-```bash
-# Install Jupyter if not already installed
-pip install jupyter
-
-# Start Jupyter and open the notebook
-jupyter notebook knockoff/Teacher_model_accuracy.ipynb
+```text
+outputs/advanced_extraction_result.json
 ```
 
-**What this does:**
-- Trains a DistilBERT teacher on Yelp sentiment data (takes 30-60 min on GPU)
-- Simulates 50k queries to the teacher
-- Trains student models (TF-IDF, MLP, Neural Networks)
-- Compares student accuracy vs teacher
-
-**Expected runtime:** 1-2 hours on GPU, 4-6 hours on CPU
-
-### 2. DisGUIDE Active Querying
-
-Run the active learning attack script:
+Run another strategy:
 
 ```bash
-# Using uv (recommended)
+uv run python -m advanced_extraction.pipeline --strategy kcenter --query-budget 320
+```
+
+Run the Hugging Face Space app locally:
+
+```bash
+uv run python app.py
+```
+
+## Hugging Face Space
+
+The repository is ready to deploy as a Gradio Space. The Space entry point is:
+
+```text
+app.py
+```
+
+Minimal Space dependencies are listed in:
+
+```text
+requirements.txt
+```
+
+Target Space name:
+
+```text
+Aravindhan11/advanced-adversarial-model-extraction-lab
+```
+
+## Main workflows
+
+### 1. Advanced active extraction
+
+```bash
+uv run python -m advanced_extraction.pipeline \
+  --strategy hybrid \
+  --query-budget 320 \
+  --initial-size 36 \
+  --step-size 32 \
+  --candidate-size 420
+```
+
+Strategies:
+
+- `random`: uniform random querying.
+- `entropy`: query high-entropy student predictions.
+- `margin`: query samples with small top-2 class margins.
+- `disagreement`: query high-variance ensemble predictions.
+- `kcenter`: query diverse points far from the labeled set.
+- `hybrid`: combine uncertainty, disagreement, and diversity.
+
+### 2. Knockoff classification stealing
+
+Soft-label distillation:
+
+```bash
+uv run python knockoff/steal_kd_sklearn_deterministic.py \
+  --dataset_hub LightFury9/yelp-5star-probs \
+  --split test \
+  --save_model student_ridge.joblib \
+  --save_manifest manifest.json
+```
+
+Hard-label extraction:
+
+```bash
+uv run python knockoff/steal_labels_sklearn_deterministic.py \
+  --dataset_hub LightFury9/yelp-5star-probs \
+  --split test \
+  --model_type logreg \
+  --save_model student_labels_logreg.joblib \
+  --save_manifest manifest_labels.json
+```
+
+### 3. DisGUIDE active querying
+
+```bash
 uv run python disguide/disguide.py
-
-# Or with activated virtual environment
-python disguide/disguide.py
 ```
 
-**What this does:**
-- Loads a pre-trained BERT teacher model
-- Performs disagreement-guided querying with 1,000-query budget
-- Trains student models using active learning
-- Saves the final student model as `student_live_disguide.joblib`
+This uses a live Hugging Face teacher model and actively selects informative
+queries from Yelp polarity text.
 
-**Expected runtime:** 10-20 minutes (downloads ~500MB model first)
-
-### 3. Logit Reconstruction
-
-Run the weight reconstruction experiments:
+### 4. Logit reconstruction
 
 ```bash
-# Run all experiments (1, 2, 3)
-uv run python logit_reconstruction/run_experiments.py
-
-# Or run specific experiments
-uv run python logit_reconstruction/run_experiments.py --experiment 1  # Scaling
-uv run python logit_reconstruction/run_experiments.py --experiment 2  # Precision
-uv run python logit_reconstruction/run_experiments.py --experiment 3  # Carlini-style
+uv run python logit_reconstruction/run_experiments.py --experiment 1 2 3
 ```
 
-**What this does:**
-- Experiment 1: Tests reconstruction with different sample sizes and models
-- Experiment 2: Tests effect of logit precision (rounding)
-- Experiment 3: Tests stealing internal linear layers
+The reconstruction suite measures output-layer subspace leakage, precision
+effects, and Carlini-style internal linear-layer stealing under controlled
+visibility settings.
 
-**Results saved to:** `logit_reconstruction/experiments/`
-- `all_results.json` - Finlayson-style reconstruction results
-- `carlini_results.json` - Carlini-style reconstruction results
-- `*.png` - Visualization plots
-- `*.npz` - Saved logit data
+## Project structure
 
-**Expected runtime:** 1-3 hours depending on experiments and GPU availability
-
-## Project Structure
-
-```
+```text
 .
-├── knockoff/              # Classification stealing experiments
-├── disguide/              # Active querying implementation
-├── logit_reconstruction/  # Weight reconstruction experiments
-├── outputs/               # Generated outputs and results
-└── scripts/               # Utility scripts
+|-- advanced_extraction/       # New active extraction strategies and simulator
+|-- app.py                     # Gradio Space app
+|-- disguide/                  # DisGUIDE-style active querying
+|-- knockoff/                  # Classification stealing baselines
+|-- logit_reconstruction/      # Logit and weight reconstruction experiments
+|-- outputs/                   # Generated metrics and manifests
+|-- scripts/                   # Dataset scoring utilities
+|-- tests/                     # Unit tests for advanced extraction utilities
+|-- pyproject.toml             # Python project metadata
+`-- requirements.txt           # Hugging Face Space dependencies
 ```
 
-## Notes
+## Verification
 
-- GPU acceleration significantly speeds up teacher model inference and training
-- Some experiments may require several hours to complete on CPU
-- Model checkpoints and datasets are downloaded automatically from Hugging Face
+```bash
+python -m unittest discover -s tests
+python -m compileall advanced_extraction app.py
+```
